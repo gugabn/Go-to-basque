@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import type { Contribution, FinanceGoal } from '@/lib/types'
 import {
   summarize, annuityTranches, requiredSavingsRate, formatPercent,
-  formatEur, formatMonthYear,
+  formatEur, formatMonthYear, daysUntil,
 } from '@/lib/finance'
 import Ring from '@/components/ui/Ring'
 import CountUp from '@/components/ui/CountUp'
@@ -37,6 +37,15 @@ export default function ResumoTab({ contributions, goal, onEditGoal }: ResumoTab
           </div>
         </div>
         <div style={{ marginTop: 8 }}><StatusPill summary={summary} /></div>
+      </Card>
+
+      {/* Contagem decrescente */}
+      <Card padding={0}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr' }}>
+          <Countdown label="Até embarcar" days={daysUntil(goal.startDate)} embarkedText="A bordo" />
+          <div style={{ background: 'var(--border)' }} />
+          <Countdown label="Até à meta" days={daysUntil(goal.targetDate)} embarkedText="Meta a fechar" />
+        </div>
       </Card>
 
       {/* Ritmo / fase */}
@@ -165,6 +174,20 @@ function Check({ reached }: { reached: boolean }) {
           <polyline points="20 6 9 17 4 12" />
         </svg>
       )}
+    </div>
+  )
+}
+
+function Countdown({ label, days, embarkedText }: { label: string; days: number; embarkedText: string }) {
+  const past = days <= 0
+  const big = past ? embarkedText : Math.abs(days) >= 60 ? `${Math.round(Math.abs(days) / 30.44)}` : `${days}`
+  const unit = past ? '' : Math.abs(days) >= 60 ? 'meses' : days === 1 ? 'dia' : 'dias'
+  return (
+    <div style={{ padding: '16px 14px', textAlign: 'center' }}>
+      <div style={{ fontSize: 11, color: 'var(--faint)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</div>
+      <div className="tnum" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: past ? 18 : 26, fontWeight: 800, color: 'var(--text)', marginTop: 6, lineHeight: 1.05 }}>
+        {big} {unit && <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)' }}>{unit}</span>}
+      </div>
     </div>
   )
 }

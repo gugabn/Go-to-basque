@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Sheet from '@/components/ui/Sheet'
-import type { Contribution, ContributionType } from '@/lib/types'
+import type { Contribution, ContributionType, MoneySource } from '@/lib/types'
+import { SOURCES } from '@/lib/types'
 
 interface AddContributionModalProps {
   isOpen: boolean
@@ -24,6 +25,7 @@ export default function AddContributionModal({ isOpen, onClose, onSave }: AddCon
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState(todayIso())
   const [note, setNote] = useState('')
+  const [source, setSource] = useState<MoneySource>('salario')
 
   useEffect(() => {
     if (isOpen) {
@@ -31,6 +33,7 @@ export default function AddContributionModal({ isOpen, onClose, onSave }: AddCon
       setAmount('')
       setDate(todayIso())
       setNote('')
+      setSource('salario')
     }
   }, [isOpen])
 
@@ -45,6 +48,7 @@ export default function AddContributionModal({ isOpen, onClose, onSave }: AddCon
       type,
       date,
       note: note.trim() || undefined,
+      source: type === 'deposito' ? source : undefined,
       createdAt: Date.now(),
     })
     onClose()
@@ -148,6 +152,34 @@ export default function AddContributionModal({ isOpen, onClose, onSave }: AddCon
             />
           </div>
         </div>
+
+        {/* Fonte (só depósitos) */}
+        {isDeposit && (
+          <div>
+            <Label>Fonte</Label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {SOURCES.map(s => {
+                const active = source === s.id
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => setSource(s.id)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '9px 13px', borderRadius: 999, cursor: 'pointer',
+                      fontSize: 13, fontWeight: 600,
+                      border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
+                      background: active ? 'rgba(240,130,74,0.16)' : 'var(--surface)',
+                      color: active ? 'var(--primary)' : 'var(--muted)',
+                    }}
+                  >
+                    <span>{s.emoji}</span>{s.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Data */}
         <div>

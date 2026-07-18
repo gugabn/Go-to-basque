@@ -7,7 +7,9 @@ import type { Milestone } from '@/lib/types'
 import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import Toast from '@/components/ui/Toast'
+import Onboarding from '@/components/Onboarding'
 import ResumoTab from '@/components/tabs/ResumoTab'
+import AnaliseTab from '@/components/tabs/AnaliseTab'
 import MarcosTab from '@/components/tabs/MarcosTab'
 import MovimentosTab from '@/components/tabs/MovimentosTab'
 
@@ -17,7 +19,7 @@ import AddMilestoneModal from '@/components/modals/AddMilestoneModal'
 import SettingsModal from '@/components/modals/SettingsModal'
 import { celebrate } from '@/lib/confetti'
 
-type Tab = 'resumo' | 'marcos' | 'movimentos'
+type Tab = 'resumo' | 'analise' | 'marcos' | 'movimentos'
 
 export default function Page() {
   const {
@@ -25,6 +27,7 @@ export default function Page() {
     contributions, addContribution, deleteContribution,
     financeGoal, setFinanceGoal,
     milestones, addMilestone, updateMilestone, toggleMilestone, deleteMilestone,
+    onboarded, setOnboarded,
   } = useStore()
 
   const [activeTab, setActiveTab] = useState<Tab>('resumo')
@@ -93,6 +96,20 @@ export default function Page() {
     )
   }
 
+  if (!onboarded) {
+    return (
+      <Onboarding
+        initial={financeGoal}
+        onComplete={g => {
+          setFinanceGoal(g)
+          setOnboarded(true)
+          showToast('Plano criado! 🎉')
+          celebrate(120)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="app-shell" style={{ minHeight: '100dvh' }}>
       <Header activeTab={activeTab} onAdd={handleAdd} onSettings={() => setSettingsOpen(true)} />
@@ -102,9 +119,13 @@ export default function Page() {
           {activeTab === 'resumo' && (
             <ResumoTab contributions={contributions} goal={financeGoal} onEditGoal={() => setFinanceGoalOpen(true)} />
           )}
+          {activeTab === 'analise' && (
+            <AnaliseTab contributions={contributions} goal={financeGoal} />
+          )}
           {activeTab === 'marcos' && (
             <MarcosTab
               milestones={milestones}
+              goal={financeGoal}
               onAddMilestone={() => { setEditMilestone(undefined); setMilestoneModalOpen(true) }}
               onEditMilestone={handleEditMilestone}
               onToggleMilestone={handleToggleMilestone}

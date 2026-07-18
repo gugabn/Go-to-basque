@@ -1,6 +1,6 @@
 'use client'
 
-type Tab = 'resumo' | 'marcos' | 'movimentos'
+type Tab = 'resumo' | 'analise' | 'marcos' | 'movimentos'
 
 interface HeaderProps {
   activeTab: Tab
@@ -10,12 +10,14 @@ interface HeaderProps {
 
 const SUBTITLES: Record<Tab, string> = {
   resumo: 'Rumo à Basque Culinary',
+  analise: 'Evolução e simulações',
   marcos: 'Certificações e etapas',
   movimentos: 'Depósitos e levantamentos',
 }
 
 const ADD_LABEL: Record<Tab, string> = {
   resumo: 'Novo depósito',
+  analise: 'Novo depósito',
   marcos: 'Novo marco',
   movimentos: 'Novo lançamento',
 }

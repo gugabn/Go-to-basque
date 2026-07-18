@@ -2,7 +2,9 @@
 
 import { useMemo } from 'react'
 import type { Contribution, FinanceGoal } from '@/lib/types'
+import { sourceMeta } from '@/lib/types'
 import { summarize, formatEur, formatEurCents } from '@/lib/finance'
+import { downloadContributionsCsv } from '@/lib/csv'
 import { Card, SectionLabel, Stat } from '@/components/ui/kit'
 
 interface MovimentosTabProps {
@@ -29,6 +31,12 @@ export default function MovimentosTab({ contributions, goal, onAdd, onDeleteCont
             sub="líquido"
             tone={summary.thisMonthSaved > 0 ? 'var(--sage)' : summary.thisMonthSaved < 0 ? 'var(--danger)' : 'var(--text)'} />
         </div>
+        {sorted.length > 0 && (
+          <button onClick={() => downloadContributionsCsv(sorted)} style={csvBtn}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar CSV
+          </button>
+        )}
       </Card>
 
       {sorted.length === 0 ? (
@@ -53,6 +61,7 @@ export default function MovimentosTab({ contributions, goal, onAdd, onDeleteCont
 
 function ContributionRow({ c, onDelete }: { c: Contribution; onDelete: () => void }) {
   const isDeposit = c.type === 'deposito'
+  const src = isDeposit && c.source ? sourceMeta(c.source) : null
   const dateLabel = new Intl.DateTimeFormat('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
     .format(new Date(`${c.date}T12:00:00`))
   const accent = isDeposit ? 'var(--sage)' : 'var(--danger)'
@@ -69,7 +78,7 @@ function ContributionRow({ c, onDelete }: { c: Contribution; onDelete: () => voi
         <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {c.note || (isDeposit ? 'Depósito' : 'Levantamento')}
         </div>
-        <div style={{ fontSize: 12, color: 'var(--faint)', marginTop: 1 }}>{dateLabel}</div>
+        <div style={{ fontSize: 12, color: 'var(--faint)', marginTop: 1 }}>{src ? `${src.emoji} ${src.label} · ${dateLabel}` : dateLabel}</div>
       </div>
       <div className="tnum" style={{ fontSize: 15, fontWeight: 700, color: accent, whiteSpace: 'nowrap' }}>
         {isDeposit ? '+' : '−'}{formatEurCents(c.amount)}
@@ -86,4 +95,11 @@ const ctaBtn: React.CSSProperties = {
   marginTop: 16, padding: '12px 22px', borderRadius: 13, border: 'none',
   background: 'var(--accent-grad)', color: '#0B0B10', fontSize: 14, fontWeight: 700,
   cursor: 'pointer', boxShadow: 'var(--glow-primary)',
+}
+
+const csvBtn: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+  width: '100%', marginTop: 12, padding: '11px', borderRadius: 12,
+  border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,0.05)',
+  color: 'var(--text)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer',
 }

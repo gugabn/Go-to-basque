@@ -8,12 +8,14 @@ import {
   getContributions, saveContributions,
   getFinanceGoal, saveFinanceGoal,
   getMilestones, saveMilestones,
+  getOnboarded, saveOnboarded,
 } from '@/lib/storage'
 
 export function useStore() {
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [financeGoal, setFinanceGoalState] = useState<FinanceGoal>(DEFAULT_GOAL)
   const [milestones, setMilestones] = useState<Milestone[]>([])
+  const [onboarded, setOnboardedState] = useState(true)
   const [hydrated, setHydrated] = useState(false)
 
   // Hydrate from localStorage on mount
@@ -22,7 +24,13 @@ export function useStore() {
     setContributions(getContributions())
     setFinanceGoalState(getFinanceGoal())
     setMilestones(getMilestones())
+    setOnboardedState(getOnboarded())
     setHydrated(true)
+  }, [])
+
+  const setOnboarded = useCallback((done: boolean) => {
+    saveOnboarded(done)
+    setOnboardedState(done)
   }, [])
 
   // ── Contribuições ────────────────────────────────────────────────────────────
@@ -89,6 +97,8 @@ export function useStore() {
     contributions,
     financeGoal,
     milestones,
+    onboarded,
+    setOnboarded,
     addContribution,
     deleteContribution,
     setFinanceGoal,

@@ -237,3 +237,88 @@ export function formatDay(iso: string): string {
   return new Intl.DateTimeFormat('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
     .format(new Date(`${iso}T12:00:00`))
 }
+
+// ── Análise ───────────────────────────────────────────────────────────────────
+
+export interface SeriesPoint { t: number; value: number }
+
+/** Poupança líquida acumulada ao longo do tempo, um ponto por lançamento + "hoje". */
+export function cumulativeSeries(contributions: Contribution[], now: Date = new Date()): SeriesPoint[] {
+  if (contributions.length === 0) return []
+  const sorted = [...contributions].sort((a, b) =>
+    a.date < b.date ? -1 : a.date > b.date ? 1 : a.createdAt - b.createdAt)
+  const pts: SeriesPoint[] = []
+  const first = parseDate(sorted[0].date).getTime()
+  pts.push({ t: first - MS_PER_MONTH * 0.15, value: 0 }) // arranca no chão
+  let run = 0
+  for (const c of sorted) {
+    run += c.type === 'levantamento' ? -c.amount : c.amount
+    pts.push({ t: parseDate(c.date).getTime(), value: run })
+  }
+  const lastT = pts[pts.length - 1].t
+  if (now.getTime() > lastT) pts.push({ t: now.getTime(), value: run })
+  return pts
+}
+
+/** Valor do plano linear (0 antes do início; alvo no prazo) num instante t. */
+export function planValueAt(goal: FinanceGoal, t: number): number {
+  const start = parseDate(goal.startDate).getTime()
+  const end = parseDate(goal.targetDate).getTime()
+  if (t <= start || end <= start) return 0
+  if (t >= end) return goal.targetAmount
+  return goal.targetAmount * ((t - start) / (end - start))
+}
+
+export interface MonthBucket { key: string; label: string; net: number }
+
+/** Poupança líquida agrupada por mês, do mais antigo ao mais recente. */
+export function monthlyBuckets(contributions: Contribution[]): MonthBucket[] {
+  const map = new Map<string, number>()
+  for (const c of contributions) {
+    const d = parseDate(c.date)
+    const key = monthKey(d)
+    const signed = c.type === 'levantamento' ? -c.amount : c.amount
+    map.set(key, (map.get(key) ?? 0) + signed)
+  }
+  return [...map.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([key, net]) => {
+      const [y, m] = key.split('-').map(Number)
+      const label = new Intl.DateTimeFormat('pt-PT', { month: 'short' }).format(new Date(y, m - 1, 1))
+      return { key, label, net }
+    })
+}
+
+export interface MonthlyStats {
+  buckets: MonthBucket[]
+  best: MonthBucket | null
+  avg: number      // média líquida por mês com atividade
+  streak: number   // meses consecutivos (até ao atual) com saldo positivo
+}
+
+export function monthlyStats(contributions: Contribution[], now: Date = new Date()): MonthlyStats {
+  const buckets = monthlyBuckets(contributions)
+  if (buckets.length === 0) return { buckets, best: null, avg: 0, streak: 0 }
+
+  const best = buckets.reduce((a, b) => (b.net > a.net ? b : a), buckets[0])
+  const avg = buckets.reduce((s, b) => s + b.net, 0) / buckets.length
+
+  // Sequência de meses positivos a terminar no mês atual.
+  const netByKey = new Map(buckets.map(b => [b.key, b.net]))
+  let streak = 0
+  const cursor = new Date(now.getFullYear(), now.getMonth(), 1)
+  for (;;) {
+    const key = monthKey(cursor)
+    const net = netByKey.get(key)
+    if (net !== undefined && net > 0) { streak++; cursor.setMonth(cursor.getMonth() - 1) }
+    else break
+  }
+  return { buckets, best, avg, streak }
+}
+
+/** Simulador: se poupares `monthly`/mês a partir de agora, quando atinges a meta. */
+export function simulateFinish(remaining: number, monthly: number, now: Date = new Date()): Date | null {
+  if (remaining <= 0) return now
+  if (monthly <= 0) return null
+  return new Date(now.getTime() + (remaining / monthly) * MS_PER_MONTH)
+}

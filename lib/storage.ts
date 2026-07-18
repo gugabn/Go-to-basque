@@ -83,3 +83,16 @@ export function saveMilestones(milestones: Milestone[]): void {
   if (!isBrowser) return
   localStorage.setItem('rumobasque_milestones', JSON.stringify(milestones))
 }
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
+
+export function getOnboarded(): boolean {
+  if (!isBrowser) return true // no servidor, não mostrar o wizard
+  return localStorage.getItem('rumobasque_onboarded') === '1'
+}
+
+export function saveOnboarded(done: boolean): void {
+  if (!isBrowser) return
+  if (done) localStorage.setItem('rumobasque_onboarded', '1')
+  else localStorage.removeItem('rumobasque_onboarded')
+}

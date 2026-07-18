@@ -3,12 +3,28 @@
 
 export type ContributionType = 'deposito' | 'levantamento'
 
+// Origem do dinheiro num lançamento.
+export type MoneySource = 'salario' | 'gorjetas' | 'freelance' | 'poupanca' | 'outro'
+
+export const SOURCES: { id: MoneySource; label: string; emoji: string }[] = [
+  { id: 'salario', label: 'Salário', emoji: '💼' },
+  { id: 'gorjetas', label: 'Gorjetas', emoji: '🪙' },
+  { id: 'freelance', label: 'Freelance', emoji: '💻' },
+  { id: 'poupanca', label: 'Poupança', emoji: '🏦' },
+  { id: 'outro', label: 'Outro', emoji: '✨' },
+]
+
+export function sourceMeta(id?: MoneySource) {
+  return SOURCES.find(s => s.id === id) ?? SOURCES[SOURCES.length - 1]
+}
+
 export interface Contribution {
   id: string
   amount: number        // sempre positivo; o sinal vem do `type`
   type: ContributionType
   date: string          // ISO yyyy-mm-dd
   note?: string
+  source?: MoneySource  // origem (só faz sentido em depósitos)
   createdAt: number
 }
 
