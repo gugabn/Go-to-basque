@@ -25,7 +25,7 @@ export interface FinanceGoal {
 // 4 anos de Basque Culinary × €11.445/ano = €45.780.
 export const DEFAULT_GOAL: FinanceGoal = {
   targetAmount: 45780,
-  startDate: '2027-06-01',
+  startDate: '2027-07-01',
   targetDate: '2030-09-01',
   plannedMonthly: 1300,
   monthlySalary: 2000,
