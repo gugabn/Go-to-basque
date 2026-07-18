@@ -126,9 +126,36 @@ input, textarea, select { font-size: 16px !important; }
 .stagger > *:nth-child(5) { animation-delay: 0.30s; }
 .stagger > *:nth-child(6) { animation-delay: 0.37s; }
 
+/* transição ao trocar de separador */
+@keyframes tabIn { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
+.tab-enter { animation: tabIn 0.45s cubic-bezier(0.22,1,0.36,1); }
+
+/* sheen a varrer o número grande */
+@keyframes shimmer { to { background-position: 200% 0; } }
+.grad-shimmer {
+  background: linear-gradient(100deg, #F0824A 10%, #F5B44C 35%, #FFDDAE 50%, #F5B44C 65%, #F0824A 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: shimmer 3.6s linear infinite;
+}
+
+/* pulsar de brilho no anel */
+@keyframes ringGlow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(240,130,74,0.55)); }
+  50%      { filter: drop-shadow(0 0 16px rgba(245,180,76,0.85)); }
+}
+
+/* micro-toque: qualquer botão encolhe ligeiramente ao premir */
+button { transition: transform 0.09s ease; }
+button:active { transform: scale(0.955); }
+
 @media (prefers-reduced-motion: reduce) {
   body::before { animation: none; }
   .stagger > * { animation: none; opacity: 1; }
+  .tab-enter { animation: none; }
+  .grad-shimmer { animation: none; }
+  button:active { transform: none; }
   * { scroll-behavior: auto !important; }
 }
 

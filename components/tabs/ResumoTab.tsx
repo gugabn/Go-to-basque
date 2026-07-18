@@ -7,6 +7,7 @@ import {
   formatEur, formatMonthYear,
 } from '@/lib/finance'
 import Ring from '@/components/ui/Ring'
+import CountUp from '@/components/ui/CountUp'
 import { Card, SectionLabel, Stat, Pill, Bar } from '@/components/ui/kit'
 
 interface ResumoTabProps {
@@ -20,17 +21,16 @@ export default function ResumoTab({ contributions, goal, onEditGoal }: ResumoTab
   const tranches = useMemo(() => annuityTranches(summary.saved, goal), [summary.saved, goal])
   const savingsRate = requiredSavingsRate(summary.requiredMonthly, goal.monthlySalary)
   const startLabel = formatMonthYear(new Date(`${goal.startDate}T12:00:00`))
-  const pct = Math.round(summary.progress * 100)
 
   return (
     <div className="stagger" style={{ padding: '4px 16px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Herói */}
       <Card padding={22} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-        <Ring progress={summary.progress} centerTop={`${pct}%`} centerLabel="da meta" />
+        <Ring progress={summary.progress} centerLabel="da meta" />
         <div style={{ textAlign: 'center', marginTop: 4 }}>
           <div style={{ fontSize: 12.5, color: 'var(--muted)', letterSpacing: '0.02em' }}>Poupado</div>
-          <div className="grad-text tnum" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 40, fontWeight: 800, lineHeight: 1.05 }}>
-            {formatEur(summary.saved)}
+          <div className="grad-shimmer tnum" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 40, fontWeight: 800, lineHeight: 1.05 }}>
+            <CountUp value={summary.saved} format={formatEur} />
           </div>
           <div className="tnum" style={{ fontSize: 13, color: 'var(--muted)', marginTop: 3 }}>
             de {formatEur(summary.target)} · faltam {formatEur(summary.remaining)}

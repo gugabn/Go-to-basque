@@ -15,6 +15,7 @@ import AddContributionModal from '@/components/modals/AddContributionModal'
 import FinanceGoalModal from '@/components/modals/FinanceGoalModal'
 import AddMilestoneModal from '@/components/modals/AddMilestoneModal'
 import SettingsModal from '@/components/modals/SettingsModal'
+import { celebrate } from '@/lib/confetti'
 
 type Tab = 'resumo' | 'marcos' | 'movimentos'
 
@@ -59,11 +60,17 @@ export default function Page() {
   const handleSaveContribution = (c: Parameters<typeof addContribution>[0]) => {
     addContribution(c)
     showToast(c.type === 'deposito' ? 'Depósito registado!' : 'Levantamento registado')
+    if (c.type === 'deposito') celebrate(100)
   }
   const handleDeleteContribution = (id: string) => { deleteContribution(id); showToast('Lançamento eliminado') }
   const handleSaveGoal = (g: Parameters<typeof setFinanceGoal>[0]) => { setFinanceGoal(g); showToast('Meta atualizada!') }
 
   const handleEditMilestone = (m: Milestone) => { setEditMilestone(m); setMilestoneModalOpen(true) }
+  const handleToggleMilestone = (id: string) => {
+    const wasDone = milestones.find(m => m.id === id)?.done
+    toggleMilestone(id)
+    if (!wasDone) celebrate(60)
+  }
   const handleSaveMilestone = (m: Milestone) => {
     if (editMilestone) { updateMilestone(m); showToast('Marco atualizado!') }
     else { addMilestone(m); showToast('Marco adicionado!') }
@@ -91,26 +98,28 @@ export default function Page() {
       <Header activeTab={activeTab} onAdd={handleAdd} onSettings={() => setSettingsOpen(true)} />
 
       <main style={{ paddingBottom: 'calc(96px + env(safe-area-inset-bottom))', minHeight: 'calc(100dvh - 68px)' }}>
-        {activeTab === 'resumo' && (
-          <ResumoTab contributions={contributions} goal={financeGoal} onEditGoal={() => setFinanceGoalOpen(true)} />
-        )}
-        {activeTab === 'marcos' && (
-          <MarcosTab
-            milestones={milestones}
-            onAddMilestone={() => { setEditMilestone(undefined); setMilestoneModalOpen(true) }}
-            onEditMilestone={handleEditMilestone}
-            onToggleMilestone={toggleMilestone}
-            onDeleteMilestone={handleDeleteMilestone}
-          />
-        )}
-        {activeTab === 'movimentos' && (
-          <MovimentosTab
-            contributions={contributions}
-            goal={financeGoal}
-            onAdd={() => setAddContributionOpen(true)}
-            onDeleteContribution={handleDeleteContribution}
-          />
-        )}
+        <div key={activeTab} className="tab-enter">
+          {activeTab === 'resumo' && (
+            <ResumoTab contributions={contributions} goal={financeGoal} onEditGoal={() => setFinanceGoalOpen(true)} />
+          )}
+          {activeTab === 'marcos' && (
+            <MarcosTab
+              milestones={milestones}
+              onAddMilestone={() => { setEditMilestone(undefined); setMilestoneModalOpen(true) }}
+              onEditMilestone={handleEditMilestone}
+              onToggleMilestone={handleToggleMilestone}
+              onDeleteMilestone={handleDeleteMilestone}
+            />
+          )}
+          {activeTab === 'movimentos' && (
+            <MovimentosTab
+              contributions={contributions}
+              goal={financeGoal}
+              onAdd={() => setAddContributionOpen(true)}
+              onDeleteContribution={handleDeleteContribution}
+            />
+          )}
+        </div>
       </main>
 
       <BottomNav activeTab={activeTab} onChange={setActiveTab} />
