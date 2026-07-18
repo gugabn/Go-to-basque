@@ -42,6 +42,7 @@ export default function FinanceView({
   const tranches = useMemo(() => annuityTranches(summary.saved, goal), [summary.saved, goal])
   const mStats = useMemo(() => summarizeMilestones(milestones), [milestones])
   const savingsRate = requiredSavingsRate(summary.requiredMonthly, goal.monthlySalary)
+  const startLabel = formatMonthYear(new Date(`${goal.startDate}T12:00:00`))
 
   const sortedMilestones = useMemo(
     () => [...milestones].sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0)),
@@ -96,24 +97,44 @@ export default function FinanceView({
         <CardTitle>Ritmo de poupança</CardTitle>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Stat
-            label="Preciso por mês"
+            label={summary.beforeStart ? 'Por mês a bordo' : 'Preciso por mês'}
             value={summary.reached ? '—' : formatEur(summary.requiredMonthly)}
-            sub={summary.reached ? 'meta atingida 🎉' : `${summary.monthsLeft} meses até ao prazo`}
+            sub={
+              summary.reached ? 'meta atingida 🎉'
+                : summary.beforeStart ? `quando embarcares · ${startLabel}`
+                : `${summary.monthsLeft} meses até ao prazo`
+            }
           />
           <Stat
             label="Este mês"
             value={formatEur(summary.thisMonthSaved)}
-            sub="poupado até agora"
+            sub={summary.beforeStart ? 'adiantado' : 'poupado até agora'}
             color={
-              summary.reached || summary.thisMonthSaved >= summary.requiredMonthly
-                ? 'var(--sage)'
-                : summary.thisMonthSaved > 0 ? 'var(--gold)' : 'var(--muted)'
+              summary.reached ? 'var(--sage)'
+                : summary.beforeStart
+                  ? (summary.thisMonthSaved > 0 ? 'var(--sage)' : 'var(--muted)')
+                  : summary.thisMonthSaved >= summary.requiredMonthly ? 'var(--sage)'
+                    : summary.thisMonthSaved > 0 ? 'var(--gold)' : 'var(--muted)'
             }
           />
         </div>
 
-        {/* Barra: este mês vs necessário */}
-        {!summary.reached && summary.requiredMonthly > 0 && (
+        {/* Fase de adiantamento: antes de embarcar não há ritmo a cumprir */}
+        {!summary.reached && summary.beforeStart && (
+          <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 12, backgroundColor: 'rgba(122,158,126,0.12)' }}>
+            <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>
+              {summary.thisMonthSaved > 0
+                ? `🎉 Este mês adiantaste ${formatEur(summary.thisMonthSaved)}. Ainda não embarcaste — tudo o que metes agora é adiantado.`
+                : `💡 Só embarcas em ${startLabel}. Tudo o que meteres até lá é adiantado e baixa o que terás de poupar a bordo.`}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6, lineHeight: 1.45 }}>
+              Ao teu saldo atual, o ritmo a bordo já baixou para {formatEur(summary.requiredMonthly)}/mês.
+            </div>
+          </div>
+        )}
+
+        {/* Barra: este mês vs necessário (só a partir do embarque) */}
+        {!summary.reached && !summary.beforeStart && summary.requiredMonthly > 0 && (
           <div style={{ marginTop: 14 }}>
             <MiniBar
               value={summary.thisMonthSaved}
@@ -129,7 +150,7 @@ export default function FinanceView({
 
         {/* Meta por salário */}
         {!summary.reached && savingsRate !== null && (
-          <SalaryInsight rate={savingsRate} salary={goal.monthlySalary} required={summary.requiredMonthly} />
+          <SalaryInsight rate={savingsRate} salary={goal.monthlySalary} required={summary.requiredMonthly} beforeStart={summary.beforeStart} />
         )}
       </section>
 
@@ -518,26 +539,38 @@ function SalaryInsight({
   rate,
   salary,
   required,
+  beforeStart,
 }: {
   rate: number
   salary: number
   required: number
+  beforeStart: boolean
 }) {
   const tough = rate > 1
   const heavy = rate > 0.7 && rate <= 1
   const color = tough ? '#E85D3A' : heavy ? 'var(--gold)' : 'var(--sage)'
   const bg = tough ? 'rgba(232,93,58,0.10)' : heavy ? 'rgba(232,168,56,0.12)' : 'rgba(122,158,126,0.12)'
 
+  const label = beforeStart ? 'Do salário a bordo' : 'Do teu salário estimado'
+  let text: string
+  if (beforeStart) {
+    text = tough
+      ? `A bordo terias de poupar ${formatEur(required)}/mês, mais do que o salário estimado (${formatEur(salary)}). Adianta o máximo agora para aliviar.`
+      : `A bordo, poupar ${formatEur(required)} dos ${formatEur(salary)}/mês chega para bateres o ritmo — e cada euro adiantado agora baixa esse valor.`
+  } else {
+    text = tough
+      ? `Precisas de ${formatEur(required)}/mês mas o salário estimado é ${formatEur(salary)}. Não chega — sobe o prazo, o salário ou baixa a meta.`
+      : `Poupar ${formatEur(required)} dos ${formatEur(salary)} que ganhas por mês chega para bateres o ritmo.`
+  }
+
   return (
     <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 12, backgroundColor: bg }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ fontSize: 13, color: 'var(--muted)' }}>Do teu salário estimado</span>
+        <span style={{ fontSize: 13, color: 'var(--muted)' }}>{label}</span>
         <span style={{ fontSize: 20, fontWeight: 700, color }}>{formatPercent(rate)}</span>
       </div>
       <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4, lineHeight: 1.45 }}>
-        {tough
-          ? `Precisas de ${formatEur(required)}/mês mas o salário estimado é ${formatEur(salary)}. Não chega — sobe o prazo, o salário ou baixa a meta.`
-          : `Poupar ${formatEur(required)} dos ${formatEur(salary)} que ganhas por mês chega para bateres o ritmo.`}
+        {text}
       </div>
     </div>
   )

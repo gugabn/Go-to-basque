@@ -75,6 +75,8 @@ export interface FinanceSummary {
   projectedFinish: Date | null
   /** Já atingiu (ou passou) a meta. */
   reached: boolean
+  /** Ainda antes da data de início do plano (fase de adiantamento). */
+  beforeStart: boolean
 }
 
 export function summarize(
@@ -93,7 +95,17 @@ export function summarize(
 
   const monthsLeftRaw = (end.getTime() - now.getTime()) / MS_PER_MONTH
   const monthsLeft = Math.max(0, Math.ceil(monthsLeftRaw))
-  const requiredMonthly = remaining === 0 ? 0 : monthsLeft > 0 ? remaining / monthsLeft : remaining
+
+  // Estás antes do embarque? Até lá, poupas aos poucos como adiantamento;
+  // o ritmo mensal a sério só arranca na data de início do plano.
+  const beforeStart = now.getTime() < start.getTime()
+
+  // Ritmo necessário calculado sobre a janela REAL de poupança:
+  // de max(agora, início) até ao prazo. Antes do embarque isto dá o valor
+  // que terás de poupar por mês a bordo — e baixa a cada euro adiantado.
+  const savingStart = beforeStart ? start : now
+  const monthsInWindow = Math.max(0, Math.ceil((end.getTime() - savingStart.getTime()) / MS_PER_MONTH))
+  const requiredMonthly = remaining === 0 ? 0 : monthsInWindow > 0 ? remaining / monthsInWindow : remaining
 
   // Poupança do mês corrente.
   const thisKey = monthKey(now)
@@ -145,6 +157,7 @@ export function summarize(
     ahead,
     projectedFinish,
     reached,
+    beforeStart,
   }
 }
 
