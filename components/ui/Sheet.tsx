@@ -44,8 +44,8 @@ export default function Sheet({ isOpen, onClose, title, children, footer }: Shee
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundColor: 'rgba(44, 44, 44, 0.55)',
-          backdropFilter: 'blur(2px)',
+          backgroundColor: 'rgba(3, 4, 10, 0.66)',
+          backdropFilter: 'blur(4px)',
         }}
       />
 
@@ -56,8 +56,10 @@ export default function Sheet({ isOpen, onClose, title, children, footer }: Shee
           position: 'relative',
           zIndex: 1,
           backgroundColor: 'var(--surface)',
-          borderRadius: '20px 20px 0 0',
+          borderTop: '1px solid var(--border-strong)',
+          borderRadius: '24px 24px 0 0',
           maxHeight: '92dvh',
+          boxShadow: '0 -20px 60px rgba(0,0,0,0.6)',
           display: 'flex',
           flexDirection: 'column',
           paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
@@ -89,8 +91,9 @@ export default function Sheet({ isOpen, onClose, title, children, footer }: Shee
             <h2
               style={{
                 margin: 0,
-                fontFamily: 'var(--font-playfair), serif',
-                fontSize: 20,
+                fontFamily: 'var(--font-display), sans-serif',
+                fontSize: 19,
+                fontWeight: 700,
                 color: 'var(--text)',
               }}
             >

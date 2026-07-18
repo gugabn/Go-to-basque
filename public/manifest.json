@@ -4,8 +4,8 @@
   "description": "Poupança rumo à Basque Culinary",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FDF8F3",
-  "theme_color": "#C4622D",
+  "background_color": "#070810",
+  "theme_color": "#070810",
   "orientation": "portrait",
   "icons": [
     {

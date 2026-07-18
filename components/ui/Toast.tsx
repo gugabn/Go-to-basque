@@ -13,18 +13,21 @@ export default function Toast({ message, visible }: ToastProps) {
       className="animate-toastIn"
       style={{
         position: 'fixed',
-        bottom: 'calc(24px + env(safe-area-inset-bottom))',
+        bottom: 'calc(104px + env(safe-area-inset-bottom))',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 100,
-        backgroundColor: 'var(--text)',
-        color: '#fff',
+        background: 'linear-gradient(180deg, rgba(30,34,46,0.96), rgba(18,21,31,0.96))',
+        border: '1px solid var(--border-strong)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        color: 'var(--text)',
         padding: '12px 20px',
-        borderRadius: 12,
+        borderRadius: 999,
         fontSize: 14,
-        fontWeight: 500,
+        fontWeight: 600,
         whiteSpace: 'nowrap',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+        boxShadow: '0 12px 34px rgba(0,0,0,0.5)',
         pointerEvents: 'none',
       }}
     >

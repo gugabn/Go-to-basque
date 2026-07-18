@@ -5,13 +5,18 @@ import { useStore } from '@/hooks/useStore'
 import type { Milestone } from '@/lib/types'
 
 import Header from '@/components/Header'
+import BottomNav from '@/components/BottomNav'
 import Toast from '@/components/ui/Toast'
-import FinanceView from '@/components/FinanceView'
+import ResumoTab from '@/components/tabs/ResumoTab'
+import MarcosTab from '@/components/tabs/MarcosTab'
+import MovimentosTab from '@/components/tabs/MovimentosTab'
 
 import AddContributionModal from '@/components/modals/AddContributionModal'
 import FinanceGoalModal from '@/components/modals/FinanceGoalModal'
 import AddMilestoneModal from '@/components/modals/AddMilestoneModal'
 import SettingsModal from '@/components/modals/SettingsModal'
+
+type Tab = 'resumo' | 'marcos' | 'movimentos'
 
 export default function Page() {
   const {
@@ -21,14 +26,14 @@ export default function Page() {
     milestones, addMilestone, updateMilestone, toggleMilestone, deleteMilestone,
   } = useStore()
 
-  // Modal states
+  const [activeTab, setActiveTab] = useState<Tab>('resumo')
+
   const [addContributionOpen, setAddContributionOpen] = useState(false)
   const [financeGoalOpen, setFinanceGoalOpen] = useState(false)
   const [milestoneModalOpen, setMilestoneModalOpen] = useState(false)
   const [editMilestone, setEditMilestone] = useState<Milestone | undefined>(undefined)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  // Toast
   const [toastMsg, setToastMsg] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -37,152 +42,83 @@ export default function Page() {
     setToastMsg(message)
     setToastVisible(true)
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-    toastTimerRef.current = setTimeout(() => {
-      setToastVisible(false)
-    }, 2500)
+    toastTimerRef.current = setTimeout(() => setToastVisible(false), 2500)
   }, [])
 
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-    }
-  }, [])
+  useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current) }, [])
 
-  const handleSaveContribution = (contribution: Parameters<typeof addContribution>[0]) => {
-    addContribution(contribution)
-    showToast(contribution.type === 'deposito' ? 'Depósito registado!' : 'Levantamento registado')
-  }
-
-  const handleDeleteContribution = (id: string) => {
-    deleteContribution(id)
-    showToast('Lançamento eliminado')
-  }
-
-  const handleSaveGoal = (goal: Parameters<typeof setFinanceGoal>[0]) => {
-    setFinanceGoal(goal)
-    showToast('Meta atualizada!')
-  }
-
-  const handleAddMilestone = () => {
-    setEditMilestone(undefined)
-    setMilestoneModalOpen(true)
-  }
-
-  const handleEditMilestone = (milestone: Milestone) => {
-    setEditMilestone(milestone)
-    setMilestoneModalOpen(true)
-  }
-
-  const handleSaveMilestone = (milestone: Milestone) => {
-    if (editMilestone) {
-      updateMilestone(milestone)
-      showToast('Marco atualizado!')
+  const handleAdd = () => {
+    if (activeTab === 'marcos') {
+      setEditMilestone(undefined)
+      setMilestoneModalOpen(true)
     } else {
-      addMilestone(milestone)
-      showToast('Marco adicionado!')
+      setAddContributionOpen(true)
     }
   }
 
-  const handleDeleteMilestone = (id: string) => {
-    deleteMilestone(id)
-    showToast('Marco eliminado')
+  const handleSaveContribution = (c: Parameters<typeof addContribution>[0]) => {
+    addContribution(c)
+    showToast(c.type === 'deposito' ? 'Depósito registado!' : 'Levantamento registado')
   }
+  const handleDeleteContribution = (id: string) => { deleteContribution(id); showToast('Lançamento eliminado') }
+  const handleSaveGoal = (g: Parameters<typeof setFinanceGoal>[0]) => { setFinanceGoal(g); showToast('Meta atualizada!') }
+
+  const handleEditMilestone = (m: Milestone) => { setEditMilestone(m); setMilestoneModalOpen(true) }
+  const handleSaveMilestone = (m: Milestone) => {
+    if (editMilestone) { updateMilestone(m); showToast('Marco atualizado!') }
+    else { addMilestone(m); showToast('Marco adicionado!') }
+  }
+  const handleDeleteMilestone = (id: string) => { deleteMilestone(id); showToast('Marco eliminado') }
 
   if (!hydrated) {
     return (
-      <div
-        className="app-shell"
-        style={{
-          minHeight: '100dvh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'var(--bg)',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 14,
-              backgroundColor: 'var(--primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <div className="app-shell" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 54, height: 54, borderRadius: 16, background: 'var(--accent-grad)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--glow-primary)' }}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z" />
               <line x1="6" y1="17" x2="18" y2="17" />
             </svg>
           </div>
-          <span
-            style={{
-              fontFamily: 'var(--font-playfair), serif',
-              fontSize: 22,
-              color: 'var(--primary)',
-              fontWeight: 700,
-            }}
-          >
-            Rumo à Basque
-          </span>
+          <span className="grad-text" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 800 }}>Rumo à Basque</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="app-shell" style={{ minHeight: '100dvh', backgroundColor: 'var(--bg)' }}>
-      <Header
-        onAdd={() => setAddContributionOpen(true)}
-        onSettings={() => setSettingsOpen(true)}
-      />
+    <div className="app-shell" style={{ minHeight: '100dvh' }}>
+      <Header activeTab={activeTab} onAdd={handleAdd} onSettings={() => setSettingsOpen(true)} />
 
-      <main
-        style={{
-          paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
-          minHeight: 'calc(100dvh - 60px)',
-        }}
-      >
-        <FinanceView
-          contributions={contributions}
-          goal={financeGoal}
-          milestones={milestones}
-          onEditGoal={() => setFinanceGoalOpen(true)}
-          onDeleteContribution={handleDeleteContribution}
-          onAddMilestone={handleAddMilestone}
-          onEditMilestone={handleEditMilestone}
-          onToggleMilestone={toggleMilestone}
-          onDeleteMilestone={handleDeleteMilestone}
-        />
+      <main style={{ paddingBottom: 'calc(96px + env(safe-area-inset-bottom))', minHeight: 'calc(100dvh - 68px)' }}>
+        {activeTab === 'resumo' && (
+          <ResumoTab contributions={contributions} goal={financeGoal} onEditGoal={() => setFinanceGoalOpen(true)} />
+        )}
+        {activeTab === 'marcos' && (
+          <MarcosTab
+            milestones={milestones}
+            onAddMilestone={() => { setEditMilestone(undefined); setMilestoneModalOpen(true) }}
+            onEditMilestone={handleEditMilestone}
+            onToggleMilestone={toggleMilestone}
+            onDeleteMilestone={handleDeleteMilestone}
+          />
+        )}
+        {activeTab === 'movimentos' && (
+          <MovimentosTab
+            contributions={contributions}
+            goal={financeGoal}
+            onAdd={() => setAddContributionOpen(true)}
+            onDeleteContribution={handleDeleteContribution}
+          />
+        )}
       </main>
 
-      {/* Modals */}
-      <AddContributionModal
-        isOpen={addContributionOpen}
-        onClose={() => setAddContributionOpen(false)}
-        onSave={handleSaveContribution}
-      />
+      <BottomNav activeTab={activeTab} onChange={setActiveTab} />
 
-      <FinanceGoalModal
-        isOpen={financeGoalOpen}
-        onClose={() => setFinanceGoalOpen(false)}
-        goal={financeGoal}
-        onSave={handleSaveGoal}
-      />
-
-      <AddMilestoneModal
-        isOpen={milestoneModalOpen}
-        onClose={() => setMilestoneModalOpen(false)}
-        onSave={handleSaveMilestone}
-        initialData={editMilestone}
-      />
-
-      <SettingsModal
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-      />
+      <AddContributionModal isOpen={addContributionOpen} onClose={() => setAddContributionOpen(false)} onSave={handleSaveContribution} />
+      <FinanceGoalModal isOpen={financeGoalOpen} onClose={() => setFinanceGoalOpen(false)} goal={financeGoal} onSave={handleSaveGoal} />
+      <AddMilestoneModal isOpen={milestoneModalOpen} onClose={() => setMilestoneModalOpen(false)} onSave={handleSaveMilestone} initialData={editMilestone} />
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <Toast message={toastMsg} visible={toastVisible} />
     </div>

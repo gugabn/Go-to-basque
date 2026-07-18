@@ -1,115 +1,147 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #FDF8F3;
-  --primary: #C4622D;
-  --primary-dark: #A8521F;
-  --sage: #7A9E7E;
-  --gold: #E8A838;
-  --text: #2C2C2C;
-  --muted: #6B6B6B;
-  --surface: #FFFFFF;
-  --surface2: #F5EFE8;
-  --border: #E8DDD4;
-  --shadow: rgba(44, 44, 44, 0.08);
+  /* ── Base escura ─────────────────────────────────────────── */
+  --bg: #070810;
+  --text: #ECEFF7;
+  --muted: #97A0B5;
+  --faint: #6B7288;
+
+  /* Painéis / vidro */
+  --surface: #12151F;      /* painel sólido (inputs, sheets) */
+  --surface2: #1A1F2C;     /* elevado */
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Acentos neon */
+  --primary: #F0824A;      /* terracota viva */
+  --primary-2: #F5B44C;    /* âmbar */
+  --accent-grad: linear-gradient(135deg, #F0824A 0%, #F5B44C 100%);
+  --sage: #3FD9A2;         /* verde menta (positivo) */
+  --gold: #F5B44C;
+  --danger: #FF6B6B;
+
+  --glow-primary: 0 0 24px rgba(240, 130, 74, 0.45);
+  --shadow: rgba(0, 0, 0, 0.55);
 }
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
+html, body {
+  margin: 0; padding: 0;
   background-color: var(--bg);
   color: var(--text);
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-}
-
-body {
-  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-/* Scrollbar hiding */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Smooth scroll */
-* {
-  scroll-behavior: smooth;
-}
-
-/* Prevent horizontal scroll */
-html,
-body {
   overflow-x: hidden;
   max-width: 100vw;
 }
 
-/* Custom animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  position: relative;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+/* ── Fundo aurora (atrás de tudo) ──────────────────────────── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  z-index: -2;
+  background:
+    radial-gradient(38% 32% at 18% 10%, rgba(240, 130, 74, 0.30), transparent 70%),
+    radial-gradient(34% 30% at 88% 16%, rgba(245, 180, 76, 0.20), transparent 70%),
+    radial-gradient(46% 42% at 78% 92%, rgba(126, 92, 214, 0.22), transparent 72%),
+    radial-gradient(48% 44% at 8% 88%, rgba(63, 217, 162, 0.14), transparent 72%);
+  filter: blur(28px);
+  animation: drift 22s ease-in-out infinite alternate;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(120% 90% at 50% 0%, transparent 40%, rgba(4, 5, 12, 0.55) 100%);
+  pointer-events: none;
+}
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(0, -3%, 0) scale(1.06); }
 }
 
-@keyframes toastIn {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+/* ── Vidro ─────────────────────────────────────────────────── */
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025));
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: 0 14px 44px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.glass-soft {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 16px;
 }
 
-.animate-fadeIn   { animation: fadeIn  0.2s ease-out; }
-.animate-slideUp  { animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1); }
-.animate-toastIn  { animation: toastIn 0.3s ease-out; }
+/* ── Utilitários ───────────────────────────────────────────── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Touch targets */
-button, a, [role="button"] {
-  min-height: 44px;
-  min-width: 44px;
+.grad-text {
+  background: var(--accent-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
 }
+.tnum { font-variant-numeric: tabular-nums; }
 
-/* Inputs never cause iOS zoom */
-input, textarea, select {
-  font-size: 16px !important;
-}
-
-/* Focus ring */
-:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* Headings font */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-family: var(--font-display), var(--font-inter), sans-serif;
+  letter-spacing: -0.02em;
 }
 
-/* Desktop: center the app in a phone-style frame.
-   The transform on .app-shell makes it the containing block for its
-   position:fixed descendants (modals), so they stay inside the 430px
-   frame instead of spanning the whole viewport. */
+button, a, [role="button"] { min-height: 44px; min-width: 44px; }
+input, textarea, select { font-size: 16px !important; }
+
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ── Animações ─────────────────────────────────────────────── */
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+@keyframes toastIn { from { transform: translate(-50%, 16px); opacity: 0 } to { transform: translate(-50%, 0); opacity: 1 } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
+
+.animate-fadeIn  { animation: fadeIn 0.2s ease-out; }
+.animate-slideUp { animation: slideUp 0.4s cubic-bezier(0.32,0.72,0,1); }
+.animate-toastIn { animation: toastIn 0.3s ease-out; }
+
+/* entrada escalonada dos cartões */
+.stagger > * { opacity: 0; animation: rise 0.55s cubic-bezier(0.22,1,0.36,1) forwards; }
+.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger > *:nth-child(2) { animation-delay: 0.09s; }
+.stagger > *:nth-child(3) { animation-delay: 0.16s; }
+.stagger > *:nth-child(4) { animation-delay: 0.23s; }
+.stagger > *:nth-child(5) { animation-delay: 0.30s; }
+.stagger > *:nth-child(6) { animation-delay: 0.37s; }
+
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+  .stagger > * { animation: none; opacity: 1; }
+  * { scroll-behavior: auto !important; }
+}
+
+/* ── Moldura de telemóvel no desktop ───────────────────────── */
 @media (min-width: 600px) {
-  body {
-    background-color: #E4D9CD;
-  }
+  body { background-color: #04050B; }
   .app-shell {
     max-width: 430px;
     margin: 0 auto;
+    min-height: 100dvh;
     transform: translateZ(0);
-    box-shadow: 0 16px 50px rgba(44, 44, 44, 0.22);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
   }
 }
